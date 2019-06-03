@@ -16,3 +16,10 @@ There are a few secrets required for the Nginx server to serve domains on *.kash
 |   +-- ca-certificate.pem # CA's trusted certificate
 |   +-- dhparam.pem # A pre-calculated DH sequence
 ```
+
+## Running
+The `docker-compose.yml` file should hold all the config details required for configuration. This can be edited, and the `nginx/sites-available/example.kashis.com.au` config file edited to our liking. Once configured, the following command will begin the server:
+
+```
+docker-compose up -d
+```
