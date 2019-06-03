@@ -1,0 +1,50 @@
+# Example configuration for a reverse proxy,
+# using the domain name example.kashis.com.au.
+
+server {
+  # Listen for both IPv4 & IPv6 requests on port 443 with http2 enabled
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+
+  # General virtual host settings
+  server_name example.kashis.com.au;
+  root "/home/kashis/www/example";
+  index index.html index.htm;
+  charset utf-8;
+
+  # Enable server-side includes as per: http://nginx.org/en/docs/http/ngx_http_ssi_module.html
+  ssi on;
+
+  error_log /var/log/nginx/example.error.log debug;
+  access_log /var/log/nginx/example.access.log;
+
+  # Ban certain bots from crawling the site
+  if ($limit_bots = 1) {
+      return 403;
+  }
+
+  # Change // -> / for all URLs, so it works for our php location block, too
+  merge_slashes off;
+  rewrite (.*)//+(.*) $1/$2 permanent;
+
+  # For WordPress bots/users
+  location ~ ^/(wp-login|wp-admin|wp-config|wp-content|wp-includes|(.*)\.exe) {
+      return 301 https://wordpress.com/wp-login.php;
+  }
+
+  #this where socket io will be handling the request
+  location /socket.io/ {
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_pass "http://localhost:8000/socket.io/";
+  }
+
+  location / {
+    proxy_pass http://localhost:8000;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+  }
+}
